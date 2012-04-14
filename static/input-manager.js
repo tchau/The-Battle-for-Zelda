@@ -1,3 +1,6 @@
+// TODO
+// currently sends commands at maximum rate; need to put it into a loop sampling at
+// the server's tick rate
 var InputManager = Class.extend({
 	init: function(socket, pid, hero) {
 
@@ -20,6 +23,8 @@ var InputManager = Class.extend({
 
 
     var keyStates = {};
+
+
 		// on keyUP, speed 0.
 		$('body').keydown(function(e) {
 

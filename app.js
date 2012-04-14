@@ -78,11 +78,13 @@ io.sockets.on('connection', function (socket) {
     });
 
     // broadcast moves
+    var t = new Date();
     _.each(players, function(p, pid) {
 
-      // swing sword
+      // timestamp world snapshow
       p.socket.emit('update', {
-        players: serialPlayers
+        players: serialPlayers,
+        t: t
       });
 
       // walk
