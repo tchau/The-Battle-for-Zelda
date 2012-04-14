@@ -1,0 +1,82 @@
+<html>
+<head>
+
+<title>The Battle for Zelda: Link's BLOODBATH</title>
+<script src="/socket.io/socket.io.js"></script>
+<script src="/static/jquery-1.7.1.min.js"></script>
+<script src="/static/underscore.js"></script>
+<script src="/static/class.js"></script>
+
+<script src="/static/input-manager.js"></script>
+<script src="/static/sprited-anim.js"></script>
+
+<link rel="stylesheet" href="/static/index.css" />
+<script>
+
+var FPS = 30;
+
+$(document).ready(function() {
+	var canvas = $('#canvas')[0];
+	var ctx = canvas.getContext('2d');
+		  ctx.fillStyle='#ff0000';
+
+	var players = {};
+	var pid; 
+	var socket = io.connect('http://localhost');
+
+	socket.on('setPid', function (data) {
+		pid = data.pid;
+		console.log("Connected: " + data.pid)
+
+		// handle user input
+		players[pid] = new Hero();
+		new InputManager(socket, pid, players[pid]);
+	});
+
+	// updates from backend
+	socket.on('update', function (data) {
+		_.each(data.players, function(player, pid){
+			if (players[pid] == undefined)
+				players[pid] = new Hero();
+
+			players[pid].setPosition(player.x, player.y);
+			players[pid].setDirection(player.xdir, player.ydir);
+		});
+	});
+	
+	// animation loop - perform INTERPOLATION to reduce jerkiness
+	setInterval(function() {
+		ctx.clearRect(0,0, canvas.width, canvas.height);
+
+		// foreach player, advance frame and draw
+		_.each(players, function(player, pid){
+		  player.next();
+		  player.draw(ctx);
+	  });
+
+	}, 1000 / FPS);
+
+
+
+
+
+
+
+});
+</script>
+</head>
+<body>
+
+	<div id="main">
+
+		<canvas width="500" height="500" id="canvas">
+
+		</canvas>
+	</div>
+	<div id="interact">
+	</div>
+
+</body>
+
+
+</html>
