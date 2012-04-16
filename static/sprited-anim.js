@@ -54,13 +54,77 @@ var Hero = SpritedAnim.extend({
     this._y = y;
   },
 
+  setVelocity : function(velocity) {
+    this._velocity = velocity;
+  },
+
   getDirection: function() {
     return { xdir: this.xdir, ydir: this.ydir };
   },
 
-  setDirection: function(xdir, ydir) {
+  ATTACKING_SPRITES: {
+      LEFT: {
+        width: 30,
+        height: 32,
+        spriteX: 234,
+        spriteY: 88,
+        frames: 5
+      },
+      UP: {
+        width: 30,
+        height: 32,
+        spriteX: 0,
+        spriteY: 178,
+        frames: 5
+      },
+      RIGHT: {
+        width: 30,
+        height: 32,
+        spriteX: 236,
+        spriteY: 178,
+        frames: 6
+      },
+      DOWN: {
+        width: 29,
+        height: 33,
+        spriteX: 0,
+        spriteY: 88,
+        frames: 6
+      }
 
-    var directions = {
+  },
+  STANDING_SPRITES: {
+    LEFT: {
+        width: 24,
+        height: 24,
+        spriteX: 240,
+        spriteY: 0,
+        frames: 1
+      },
+      UP: {
+        width: 30,
+        height: 28,
+        spriteX: 0,
+        spriteY: 120,
+        frames: 1
+      },
+      RIGHT: {
+        width: 30,
+        height: 24,
+        spriteX: 240,
+        spriteY: 120,
+        frames: 1
+      },
+      DOWN: {
+        width: 30,
+        height: 30,
+        spriteX: 0,
+        spriteY: 30,
+        frames: 1
+      }
+  },
+
+  WALK_SPRITES: {
       LEFT: {
         width: 24,
         height: 24,
@@ -74,26 +138,113 @@ var Hero = SpritedAnim.extend({
         spriteX: 0,
         spriteY: 120,
         frames: 8
+      },
+      RIGHT: {
+        width: 30,
+        height: 24,
+        spriteX: 240,
+        spriteY: 120,
+        frames: 6
+      },
+      DOWN: {
+        width: 30,
+        height: 30,
+        spriteX: 0,
+        spriteY: 30,
+        frames: 8
       }
-    };
+  },
 
-    // if there was any change in direction
-    if (! (xdir == this.xdir && ydir == this.ydir)) {
+  STATES: {
+    STANDING: 0,
+    WALKING: 1,
+    ATTACKING: 2
+  },
 
-      if (ydir < 0)
-        this.setupAnim(this._spriteImg, directions.UP);
-      else
-        this.setupAnim(this._spriteImg, directions.LEFT);
-      var img = new Image();
-      img.src = '/static/img/sprite1.png';
+  setDirection: function(xdir, ydir) {
 
-    }
+    //this.setState(this.STATES.WALKING, xdir, ydir);
 
     this.xdir = xdir;
     this.ydir = ydir;
   },
 
+  setValue: function(playerJSON) {
+    this.setPosition(playerJSON.x, playerJSON.y);
+    this.setVelocity(playerJSON.velocity);
+    this.damaged = playerJSON.damaged; 
+    //TODO do not copy fields; just do it completely and automatically
+
+    if (playerJSON.attackTime > 0) {
+      this.setState(this.STATES.ATTACKING, playerJSON.xdir, playerJSON.ydir)
+    }
+    else if (this._velocity == 0)
+      this.setState(this.STATES.STANDING, playerJSON.xdir, playerJSON.ydir)
+    else 
+      this.setState(this.STATES.WALKING, playerJSON.xdir, playerJSON.ydir);
+
+    this.setDirection(playerJSON.xdir, playerJSON.ydir);
+  },
+
+  setState: function(state, xdir, ydir) {
+
+    // if same animation state, keep running
+    if (this.state == state && this.xdir == xdir && this.ydir == ydir)
+      return;
+
+    // otherwise change animation
+
+    console.log(state)
+
+    // walking (direction)
+    if (state == this.STATES.WALKING) {
+
+      console.log('walking ' + xdir + ', ' + ydir);
+
+      // if there was any change in direction
+      if (! (xdir == this.xdir && ydir == this.ydir && this.state == state)) {
+        console.log(this.getCardinality(xdir, ydir));
+        this.setupAnim(this._spriteImg, this.WALK_SPRITES[this.getCardinality(xdir, ydir)]);
+      }
+    }
+
+    // standing (direction)
+    if (state == this.STATES.STANDING) {
+        this.setupAnim(this._spriteImg, this.STANDING_SPRITES[this.getCardinality(xdir, ydir)]);
+    }
+
+    // slashing (direction)
+    if (state == this.STATES.ATTACKING) {
+        this.setupAnim(this._spriteImg, this.ATTACKING_SPRITES[this.getCardinality(xdir, ydir)]);
+      }
+
+    this.state = state;
+
+  },
+
+  getCardinality: function(xdir, ydir) {
+    if (ydir < 0)
+      return "UP";
+    if (xdir < 0)
+      return "LEFT";
+    if (xdir > 0)
+      return "RIGHT";
+    else
+      return "DOWN";
+  },
+
   draw: function(ctx) {
+    //if (this._velocity > 0)
+    this.next();
+
     this._super(ctx, this._x, this._y);
+
+    // TODO temp
+    if (this.damaged) {
+      ctx.drawR
+      ctx.strokeStyle = '#f00'; // red
+      ctx.lineWidth   = 1;
+      ctx.strokeRect(this._x - 2,  this._y - 2, 28, 28);
+    }
   }
 });
