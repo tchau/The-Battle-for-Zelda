@@ -31,8 +31,6 @@ var InputManager = Class.extend({
 
       // choose to go in most recent direction
       // only accept VALID controls
-      console.log("KEYDOWN: " + e.keyCode);
-
 			var dir;
       var attack = null;
 			switch (e.keyCode) {
@@ -59,6 +57,8 @@ var InputManager = Class.extend({
           attack: attack,
           velocity: 1
 				});
+
+        e.preventDefault();
 			}
 
 		});
@@ -73,7 +73,6 @@ var InputManager = Class.extend({
 
       // if NO motion keys are depressed, stop.
       if (keysDown == 0) {
-        console.log('full stop ' + keysDown);
         socket.emit('userInput', { 
             pid: pid,
             dir: {}, // no change to direction

@@ -30,8 +30,16 @@ var Player = function() {
   // "attacking" cooldown, in ticks
   this.attackTime = 0;
 
+  // "damaged" cooldown, in ticks
+  this.damagedTime = 0;
+
   this.getBox = function() {
     return new Rectangle({ x: this.x, y: this.y, w: 30, h: 30});
+  }
+
+  this.knockback = function(xdir, ydir) {
+    this.x += xdir * 6;
+    this.y += ydir * 6;
   }
 
   this.setDirection = function(dir) {
@@ -55,8 +63,8 @@ var Player = function() {
     return new Rectangle(
           { x: this.x + PLAYER_WIDTH * this.xdir,
             y: this.y + PLAYER_HEIGHT * this.ydir,
-            w: PLAYER_WIDTH,
-            h: PLAYER_HEIGHT });
+            w: PLAYER_WIDTH/2,
+            h: PLAYER_HEIGHT/2 });
 
   }
 
@@ -64,6 +72,9 @@ var Player = function() {
   this.update = function() {
     this.x += Constants.WALK_SPEED * this.velocity * this.xdir;
     this.y += Constants.WALK_SPEED * this.velocity * this.ydir;
+
+    if (this.damagedTime > 0)
+      this.damagedTime--;
 
     if (this.attackTime > 0)
       this.attackTime--;
@@ -91,56 +102,62 @@ io.sockets.on('connection', function (socket) {
     }
 
   });
-
-  // dead reckoning; clients simulate based on a past data point... course-correct.
-  // every tick, send position udpates of all ships and projectiles
-  setInterval(function() {
-
-    var serialPlayers = {};
-
-    _.each(players, function(p, pid) {
-
-      // update player states
-      p.player.update();
-
-      /* is this player attacking? */
-      var killbox;
-      if (!! (killbox = p.player.getKillBox())) {
-        _.each(players, function(other, otherPid) {
-          if (pid != otherPid && killbox.intersects(other.player.getBox())) {
-              console.log("HIT")
-              //p.player.
-
-
-              // somehow signal that the other player was hit.
-              // make them flash
-              // knock them back
-              other.player.damaged = true;
-          }
-        });
-
-      }
-
-      // serialize the player
-      var serialP = {};
-      _.each(p.player, function (field, key) {
-        if (typeof p.player[key] != 'function')
-          serialP[key] = field;
-      });
-      serialPlayers[pid] = serialP;
-    });
-
-    // broadcast moves
-    var t = new Date();
-    _.each(players, function(p, pid) {
-
-      // timestamp world snapshow
-      p.socket.emit('update', {
-        players: serialPlayers,
-        t: t.getTime()
-      });
-
-    });
-
-  }, 20);
 });
+
+// dead reckoning; clients simulate based on a past data point... course-correct.
+// every tick, send position udpates of all ships and projectiles
+var oldT = new Date();
+setInterval(function() {
+
+  var serialPlayers = {};
+
+  // update player states
+  _.each(players, function(p, pid) {
+    p.player.update();
+
+    /* is this player attacking? */
+    var killbox;
+    if (!! (killbox = p.player.getKillBox())) {
+      _.each(players, function(other, otherPid) {
+        if (pid != otherPid && killbox.intersects(other.player.getBox())) {
+
+            // somehow signal that the other player was hit.
+            // make them flash
+            // knock them back
+            other.player.damagedTime = 70;
+            // ok; so they've been hit -- 
+            // i guess they'll be knocked back -- and the player
+            // character must play an animated effect (flashing)
+
+            // here we push them back
+            other.player.knockback(p.player.xdir, p.player.ydir);
+        }
+      });
+    }
+
+    // serialize the player
+    var serialP = {};
+    _.each(p.player, function (field, key) {
+      if (typeof p.player[key] != 'function')
+        serialP[key] = field;
+    });
+    serialPlayers[pid] = serialP;
+  });
+
+  // broadcast moves
+  var t = new Date();
+  _.each(players, function(p, pid) {
+
+    // timestamp world snapshow
+    p.socket.emit('update', {
+      players: serialPlayers,
+      t: t.getTime()
+    });
+
+  });
+
+
+  var newT = new Date();
+//  console.log(newT.getTime() - oldT.getTime())
+  oldT = newT;
+}, 20);

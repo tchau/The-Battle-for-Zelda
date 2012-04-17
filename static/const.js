@@ -1,5 +1,5 @@
 var Constants = {
-  WALK_SPEED : 0.7
+  WALK_SPEED : 1.1
 }
 
 exports.Constants = Constants;

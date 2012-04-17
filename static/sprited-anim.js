@@ -10,13 +10,22 @@ var SpritedAnim = Class.extend({
 		this._spriteX = config.spriteX;
 		this._spriteY = config.spriteY;
 		this._frames = config.frames;
+    this.tweakX = config.tweakX;
+    this.tweakY = config.tweakY;
+
 
 		this._index = 0;
+    this._flashCnt = 0;
+    this._flashOn = false;
 	},
 
 	next: function() {
 		this._index = (this._index + 1) % this._frames;
 	},
+
+  flash: function(damagedTime) {
+    this.damagedTime = damagedTime;
+  },
 
 	// assuming the frames are horizontally laid out
 	// draw at x, y position
@@ -24,6 +33,34 @@ var SpritedAnim = Class.extend({
 	draw: function(ctx, x, y) {
 		var frameX = this._spriteX + (this._index * this._width)
 		var frameY = this._spriteY;
+
+    if (this.tweakX != undefined)
+      x += this.tweakX;
+    if (this.tweakY != undefined)
+      y += this.tweakY;
+
+    if (this.damagedTime > 0) {
+        // toggle every 3 frames
+        if ( this._flashCnt % 3 == 0)
+          this._flashOn = !this._flashOn;
+
+        if (this._flashOn) {
+          /*
+          ctx.strokeStyle = '#f00'; // red
+          ctx.lineWidth   = 1;
+          ctx.strokeRect(this._x - 2,  this._y - 2, 28, 28);
+          */
+          ctx.globalAlpha = 0.5;
+        }
+        else {
+          ctx.globalAlpha = 1;
+        }
+
+        this._flashCnt++;
+    }
+    else {
+      ctx.globalAlpha = 1; // set global alpha
+    }
 
 		ctx.drawImage(this._img, 
 									frameX, frameY,  // xy pos of frame in img
@@ -68,6 +105,8 @@ var Hero = SpritedAnim.extend({
         height: 32,
         spriteX: 234,
         spriteY: 88,
+        tweakX: -9,
+        tweakY: 0,
         frames: 5
       },
       UP: {
@@ -75,6 +114,7 @@ var Hero = SpritedAnim.extend({
         height: 32,
         spriteX: 0,
         spriteY: 178,
+        tweakY: -3,
         frames: 5
       },
       RIGHT: {
@@ -172,7 +212,10 @@ var Hero = SpritedAnim.extend({
   setValue: function(playerJSON) {
     this.setPosition(playerJSON.x, playerJSON.y);
     this.setVelocity(playerJSON.velocity);
-    this.damaged = playerJSON.damaged; 
+    this.damagedTime = playerJSON.damagedTime; 
+
+    if (this.damaged)
+    console.log(this.damaged)
     //TODO do not copy fields; just do it completely and automatically
 
     if (playerJSON.attackTime > 0) {
@@ -199,7 +242,7 @@ var Hero = SpritedAnim.extend({
     // walking (direction)
     if (state == this.STATES.WALKING) {
 
-      console.log('walking ' + xdir + ', ' + ydir);
+      //console.log('walking ' + xdir + ', ' + ydir);
 
       // if there was any change in direction
       if (! (xdir == this.xdir && ydir == this.ydir && this.state == state)) {
@@ -240,11 +283,9 @@ var Hero = SpritedAnim.extend({
     this._super(ctx, this._x, this._y);
 
     // TODO temp
-    if (this.damaged) {
-      ctx.drawR
-      ctx.strokeStyle = '#f00'; // red
-      ctx.lineWidth   = 1;
-      ctx.strokeRect(this._x - 2,  this._y - 2, 28, 28);
+    if (this.damagedTime > 0) {
+      this.flash(this.damagedTime);
+      
     }
   }
 });
