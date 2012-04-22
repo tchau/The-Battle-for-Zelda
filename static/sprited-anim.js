@@ -282,6 +282,10 @@ var Hero = SpritedAnim.extend({
 
     this._super(ctx, this._x, this._y);
 
+    ctx.setFillColor('#ffffff');
+    ctx.fillText(this.name, this._x - 5, this._y + 35);
+
+
     // TODO temp
     if (this.damagedTime > 0) {
       this.flash(this.damagedTime);

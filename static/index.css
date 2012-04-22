@@ -1,10 +1,52 @@
+@font-face {
+  src: url('/static/Minecraftia.ttf');
+  font-family: 'Minecraftia';
+}
 body {
 	margin:0;
+  font-family: 'Minecraftia';
 }
+
 main {
 
 }
 
 canvas {
   background: black;
+}
+
+
+.ui-dialog {
+  position: absolute;
+  top:50px;
+  left: 10px;
+  background:#222;
+  color:#eee;
+  font-size:14px;
+  border:1px solid #555;
+  padding: 15px;
+}
+
+input {
+  font-family: 'Minecraftia';
+  background: black;
+  border:1px solid #555;
+  color:#eee;
+}
+
+button {
+  background: black;
+  font-family: 'Minecraftia';
+  border:2px solid #999;
+  padding:5px;
+  color:#eee;
+  cursor:pointer;
+}
+
+button:hover {
+  background:#444;
+}
+
+.ui-dialog-titlebar {
+  display:none;
 }

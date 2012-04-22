@@ -4,10 +4,12 @@
 <title>The Battle for Zelda: Link's BLOODBATH</title>
 <script src="/socket.io/socket.io.js"></script>
 <script src="/static/jquery-1.7.1.min.js"></script>
+<script src="/static/jquery-ui-1.8.18.custom.min.js"></script>
 <script src="/static/underscore.js"></script>
 <script src="/static/class.js"></script>
 
 <script src="/static/interpolate.js"></script>
+<script src="/static/client.js"></script>
 <script src="/static/input-manager.js"></script>
 <script src="/static/sprited-anim.js"></script>
 
@@ -16,61 +18,30 @@
 
 var FPS = 35;
 var INTERP = 100; // constant 100ms interpolation view delay
+var ctx;
 
 $(document).ready(function() {
-	var canvas = $('#canvas')[0];
-	var ctx = canvas.getContext('2d');
-		  ctx.fillStyle='#ff0000';
-
-	var players = {};
-	var pid; 
-	var socket = io.connect('http://localhost');
-
-	socket.on('setPid', function (data) {
-		pid = data.pid;
-		console.log("Connected: " + data.pid)
-
-		// handle user input
-		players[pid] = new Hero();
-		new InputManager(socket, pid, players[pid]);
-	});
-
-	// updates from backend
-	var buf = new SnapshotBuffer();
-	socket.on('update', function (data) {
-
-		// store into the snapshot buffer
-		buf.store(data);
 
 
-		_.each(data.players, function(player, pid){
-			if (players[pid] == undefined)
-				players[pid] = new Hero();
+	//TODO setup for Prompt: ask for name
+	// On Entering the name, do socket connection & start the game
+	// show jquery MODAL dialog
+	$( "#dialog-form" ).dialog({
+			autoOpen: false,
+			height: 120,
+			width: 350,
+			modal: true,
+			buttons: {
+				"For King and Country": function() {
+					$( this ).dialog( "close" );
+					startGame();
+				}
+			}
+	})
+	.dialog('open');
 
-			players[pid].setValue(player);
-		});
-	});
+
 	
-	// animation loop - perform INTERPOLATION to reduce jerkiness, buffer the snapshots
-	setInterval(function() {
-		ctx.clearRect(0,0, canvas.width, canvas.height);
-
-		// interpolate using the last two snapshots -- do we need to use server timestamps or local ones? well we KNOW the snapshots are CREATED with consistent periods; 
-		// go 100ms back in time; choose the snapshot 1 PRIOR and 1 AHEAD, interpolate between the two based on server timestamps
-		var renderSnapshot = buf.getInterpolatedSnapshot();
-
-		// foreach player, advance frame and draw
-		_.each(players, function(player, pid){
-		  player.draw(ctx);
-	  });
-
-	}, 1000 / FPS);
-
-
-
-
-
-
 
 });
 </script>
@@ -78,13 +49,23 @@ $(document).ready(function() {
 <body>
 
 	<div id="main">
-
-		<canvas width="500" height="500" id="canvas">
-
-		</canvas>
+		<canvas width="500" height="500" id="canvas"></canvas>
+	</div>
+	<div id="sidepanel">
 	</div>
 	<div id="interact">
 	</div>
+
+
+<div id="dialog-form" title="Create new user">
+	<form>
+	<fieldset>
+		<label for="name">Hero, what is thy name?</label>
+		<input type="text" name="name" id="name" class="text ui-widget-content ui-corner-all" />
+	</fieldset>
+	</form>
+</div>
+
 
 </body>
 
