@@ -91,6 +91,11 @@ io.sockets.on('connection', function (socket) {
   };
   socket.emit('setPid', { pid: pid });
 
+  // when user sets his name
+  socket.on('userName', function (data) {
+    players[data.pid].player.name = data.name;
+  });
+
   // when this player moves
   socket.on('userInput', function (data) {
     players[data.pid].player.setDirection( data.dir);

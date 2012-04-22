@@ -34,7 +34,7 @@ $(document).ready(function() {
 			buttons: {
 				"For King and Country": function() {
 					$( this ).dialog( "close" );
-					startGame();
+					startGame( $('#username').val() );
 				}
 			}
 	})
@@ -58,12 +58,8 @@ $(document).ready(function() {
 
 
 <div id="dialog-form" title="Create new user">
-	<form>
-	<fieldset>
 		<label for="name">Hero, what is thy name?</label>
-		<input type="text" name="name" id="name" class="text ui-widget-content ui-corner-all" />
-	</fieldset>
-	</form>
+		<input type="text" name="username" id="username" class="text ui-widget-content ui-corner-all" />
 </div>
 
 

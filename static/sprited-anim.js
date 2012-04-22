@@ -213,6 +213,7 @@ var Hero = SpritedAnim.extend({
     this.setPosition(playerJSON.x, playerJSON.y);
     this.setVelocity(playerJSON.velocity);
     this.damagedTime = playerJSON.damagedTime; 
+    this.name = playerJSON.name;
 
     if (this.damaged)
     console.log(this.damaged)

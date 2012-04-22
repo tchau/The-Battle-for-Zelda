@@ -1,12 +1,11 @@
 
-function startGame() {
+function startGame(username) {
   var canvas = $('#canvas')[0];
       ctx = canvas.getContext('2d');
       ctx.fillStyle='#ff0000';
 
   var players = {};
   var pid; 
-  
   var socket = io.connect('http://localhost');
 
   socket.on('setPid', function (data) {
@@ -16,6 +15,11 @@ function startGame() {
     // handle user input
     players[pid] = new Hero();
     new InputManager(socket, pid, players[pid]);
+
+    socket.emit('userName', {
+      pid: pid,
+      name: username
+    });
   });
 
   // updates from backend
