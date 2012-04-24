@@ -165,40 +165,49 @@ var Hero = SpritedAnim.extend({
   },
 
   WALK_SPRITES: {
-      LEFT: {
-        width: 24,
-        height: 24,
-        spriteX: 240,
-        spriteY: 0,
-        frames: 8
-      },
-      UP: {
-        width: 30,
-        height: 28,
-        spriteX: 0,
-        spriteY: 120,
-        frames: 8
-      },
-      RIGHT: {
-        width: 30,
-        height: 24,
-        spriteX: 240,
-        spriteY: 120,
-        frames: 6
-      },
-      DOWN: {
-        width: 30,
-        height: 30,
-        spriteX: 0,
-        spriteY: 30,
-        frames: 8
-      }
+    LEFT: {
+      width: 24,
+      height: 24,
+      spriteX: 240,
+      spriteY: 0,
+      frames: 8
+    },
+    UP: {
+      width: 30,
+      height: 28,
+      spriteX: 0,
+      spriteY: 120,
+      frames: 8
+    },
+    RIGHT: {
+      width: 30,
+      height: 24,
+      spriteX: 240,
+      spriteY: 120,
+      frames: 6
+    },
+    DOWN: {
+      width: 30,
+      height: 30,
+      spriteX: 0,
+      spriteY: 30,
+      frames: 8
+    }
+  },
+
+  DEAD_SPRITE: {
+    width: 30,
+    height: 25,
+    spriteX: 90,
+    spriteY: 210,
+    frames: 1
   },
 
   STATES: {
     STANDING: 0,
     WALKING: 1,
-    ATTACKING: 2
+    ATTACKING: 2,
+    DEAD: 3
   },
 
   setDirection: function(xdir, ydir) {
@@ -213,10 +222,12 @@ var Hero = SpritedAnim.extend({
     this.setPosition(playerJSON.x, playerJSON.y);
     this.setVelocity(playerJSON.velocity);
     this.damagedTime = playerJSON.damagedTime; 
+    this.health = playerJSON.health;
     this.name = playerJSON.name;
+    this.dead = playerJSON.dead;
 
     if (this.damaged)
-    console.log(this.damaged)
+      console.log(this.damaged)
     //TODO do not copy fields; just do it completely and automatically
 
     if (playerJSON.attackTime > 0) {
@@ -224,8 +235,11 @@ var Hero = SpritedAnim.extend({
     }
     else if (this._velocity == 0)
       this.setState(this.STATES.STANDING, playerJSON.xdir, playerJSON.ydir)
-    else 
+    else if (this._velocity > 0)
       this.setState(this.STATES.WALKING, playerJSON.xdir, playerJSON.ydir);
+
+    if (this.dead)
+      this.setState(this.STATES.DEAD, playerJSON.xdir, playerJSON.ydir)
 
     this.setDirection(playerJSON.xdir, playerJSON.ydir);
   },
@@ -238,7 +252,7 @@ var Hero = SpritedAnim.extend({
 
     // otherwise change animation
 
-    console.log(state)
+    //console.log(state)
 
     // walking (direction)
     if (state == this.STATES.WALKING) {
@@ -260,7 +274,11 @@ var Hero = SpritedAnim.extend({
     // slashing (direction)
     if (state == this.STATES.ATTACKING) {
         this.setupAnim(this._spriteImg, this.ATTACKING_SPRITES[this.getCardinality(xdir, ydir)]);
-      }
+    }
+
+    if (state == this.STATES.DEAD) {
+        this.setupAnim(this._spriteImg, this.DEAD_SPRITE);
+    }
 
     this.state = state;
 
@@ -283,7 +301,11 @@ var Hero = SpritedAnim.extend({
 
     this._super(ctx, this._x, this._y);
 
-    ctx.setFillColor('#ffffff');
+    if (this.dead)
+      ctx.setFillColor('#ff0000');
+    else
+      ctx.setFillColor('#ffffff');
+
     ctx.fillText(this.name, this._x - 5, this._y + 35);
 
 

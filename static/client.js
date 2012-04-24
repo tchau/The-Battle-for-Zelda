@@ -1,11 +1,43 @@
+// globals
+var players = {};
+var pid; 
 
+function getHearts(num) {
+  var hearts = "";
+  for (var i = 0; i < num; i++)
+      hearts+= "&hearts;";
+
+  return hearts;
+}
+
+function handleSignals(signals) {
+  _.each(signals, function(signal) {
+    if (signal.type == 'death') {
+      var str = (players[signal.killer].name + ' hath slain ' + players[signal.killed].name + '!');
+      console.log(str);
+    }
+    if (signal.type == 'damaged') {
+      var hearts = getHearts(players[signal.player].health);
+      $('#sidepanel').find('#row-' + signal.player + ' span.hearts').html(hearts);
+    }
+    if (signal.type == 'playerEntered') {
+      $('#sidepanel').empty();
+      _.each(players, function(player, pid) {
+          var hearts = getHearts(player.health);
+          $('#sidepanel').append($('<div></div>')
+                              .attr('id', 'row-' + pid)
+                              .append($('<span></span>&nbsp;').text(player.name))
+                              .append($('<span class="hearts"></span>').html(hearts)));
+      });
+
+    }
+  })
+}
 function startGame(username) {
   var canvas = $('#canvas')[0];
       ctx = canvas.getContext('2d');
       ctx.fillStyle='#ff0000';
 
-  var players = {};
-  var pid; 
   var socket = io.connect('http://localhost');
 
   socket.on('setPid', function (data) {
@@ -25,7 +57,7 @@ function startGame(username) {
   // updates from backend
   var buf = new SnapshotBuffer();
   socket.on('update', function (data) {
-
+    
     // store into the snapshot buffer
     buf.store(data);
 
@@ -35,6 +67,11 @@ function startGame(username) {
 
       players[pid].setValue(player);
     });
+
+    if (data.signals.length > 0) {
+      console.log(data.signals);
+      handleSignals(data.signals);
+    }
   });
   
   // animation loop - perform INTERPOLATION to reduce jerkiness, buffer the snapshots

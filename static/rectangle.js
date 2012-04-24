@@ -5,9 +5,11 @@ var Rectangle = function(config) {
   this.h = config.h;
 
   this.intersects = function(rect) {
+    /*
     console.log('intersects?')
     console.log(rect);
     console.log(this);
+    */
     var P1 = { x : this.x, y : this.y }
     var P2 = { x : this.x + this.w, y : this.y + this.h }
     var P3 = { x : rect.x, y : rect.y }

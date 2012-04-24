@@ -18,6 +18,9 @@ app.get('/', function (req, res) {
   res.sendfile(__dirname + '/index.html');
 });
 
+// command signals
+var signals = [];
+
 // array of players
 var PLAYER_WIDTH = 30;
 var PLAYER_HEIGHT = 30;
@@ -26,6 +29,8 @@ var Player = function() {
   this.x = 100; this.y = 100;
   this.xdir = 0; this.ydir = 0;
   this.velocity = 0;
+  this.health = 5;
+  this.dead = false;
 
   // "attacking" cooldown, in ticks
   this.attackTime = 0;
@@ -33,13 +38,23 @@ var Player = function() {
   // "damaged" cooldown, in ticks
   this.damagedTime = 0;
 
+
+  this.serialize = function() {
+    var serialP = {};
+    _.each(this, function (field, key) {
+      if (typeof this[key] != 'function')
+        serialP[key] = field;
+    });
+    return serialP;
+  }
+
   this.getBox = function() {
     return new Rectangle({ x: this.x, y: this.y, w: 30, h: 30});
   }
 
   this.knockback = function(xdir, ydir) {
-    this.x += xdir * 6;
-    this.y += ydir * 6;
+    this.x += xdir * 10;
+    this.y += ydir * 10;
   }
 
   this.setDirection = function(dir) {
@@ -65,7 +80,6 @@ var Player = function() {
             y: this.y + PLAYER_HEIGHT * this.ydir,
             w: PLAYER_WIDTH/2,
             h: PLAYER_HEIGHT/2 });
-
   }
 
   // update to next tick
@@ -94,10 +108,20 @@ io.sockets.on('connection', function (socket) {
   // when user sets his name
   socket.on('userName', function (data) {
     players[data.pid].player.name = data.name;
+
+    signals.push({
+      type: 'playerEntered',
+      player: players[data.pid].player.serialize()
+    });
   });
 
   // when this player moves
   socket.on('userInput', function (data) {
+
+    // ignore inputs for dead players
+    if (players[data.pid].dead)
+      return;
+
     players[data.pid].player.setDirection( data.dir);
     players[data.pid].player.setVelocity( data.velocity);
 
@@ -116,6 +140,7 @@ setInterval(function() {
 
   var serialPlayers = {};
 
+
   // update player states
   _.each(players, function(p, pid) {
     p.player.update();
@@ -126,27 +151,44 @@ setInterval(function() {
       _.each(players, function(other, otherPid) {
         if (pid != otherPid && killbox.intersects(other.player.getBox())) {
 
-            // somehow signal that the other player was hit.
-            // make them flash
-            // knock them back
-            other.player.damagedTime = 70;
-            // ok; so they've been hit -- 
-            // i guess they'll be knocked back -- and the player
-            // character must play an animated effect (flashing)
+          // only if player isn't already hit
+          if (other.player.damagedTime <= 0 && !other.player.dead) {
 
-            // here we push them back
+            signals.push({
+                type: 'damaged',
+                player: otherPid
+            });
+
+            // damage effects
+            other.player.damagedTime = 40;
+
+            // knockback
             other.player.knockback(p.player.xdir, p.player.ydir);
+
+            // decrease health
+            other.player.health--;
+
+            // death?
+            if (other.player.health <= 0) {
+              other.player.dead = true;
+
+              signals.push({
+                type: 'death',
+                killer:   pid,
+                killed:   otherPid
+              });
+
+              // check for a winner
+
+            }
+          }
         }
       });
     }
 
     // serialize the player
-    var serialP = {};
-    _.each(p.player, function (field, key) {
-      if (typeof p.player[key] != 'function')
-        serialP[key] = field;
-    });
-    serialPlayers[pid] = serialP;
+   
+    serialPlayers[pid] = p.player.serialize();
   });
 
   // broadcast moves
@@ -156,11 +198,14 @@ setInterval(function() {
     // timestamp world snapshow
     p.socket.emit('update', {
       players: serialPlayers,
+      signals: signals,
       t: t.getTime()
     });
 
   });
 
+  // misc signals (player has died, player has entered, player has left, player is damaged)
+  signals = [];
 
   var newT = new Date();
 //  console.log(newT.getTime() - oldT.getTime())

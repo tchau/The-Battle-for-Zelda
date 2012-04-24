@@ -50,3 +50,21 @@ button:hover {
 .ui-dialog-titlebar {
   display:none;
 }
+
+#sidepanel {
+  position:absolute;
+  top:0;
+  right:20px;
+  border:1px solid #ddd;
+  background:#333;
+  width:300px;
+  height:400px;
+
+  font-size:12px;
+  color:#fff;
+  padding:5px;
+}
+
+.hearts {
+  color:red;
+}
