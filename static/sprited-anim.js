@@ -222,12 +222,11 @@ var Hero = SpritedAnim.extend({
     this.setPosition(playerJSON.x, playerJSON.y);
     this.setVelocity(playerJSON.velocity);
     this.damagedTime = playerJSON.damagedTime; 
+
     this.health = playerJSON.health;
     this.name = playerJSON.name;
     this.dead = playerJSON.dead;
 
-    if (this.damaged)
-      console.log(this.damaged)
     //TODO do not copy fields; just do it completely and automatically
 
     if (playerJSON.attackTime > 0) {
@@ -251,8 +250,6 @@ var Hero = SpritedAnim.extend({
       return;
 
     // otherwise change animation
-
-    //console.log(state)
 
     // walking (direction)
     if (state == this.STATES.WALKING) {

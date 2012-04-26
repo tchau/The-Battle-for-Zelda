@@ -18,8 +18,6 @@ app.get('/', function (req, res) {
   res.sendfile(__dirname + '/index.html');
 });
 
-// command signals
-var signals = [];
 
 // array of players
 var PLAYER_WIDTH = 30;
@@ -95,6 +93,27 @@ var Player = function() {
   };
 };
 
+function broadcast(signals) {
+  var t = new Date();
+  var serialPlayers = {};
+
+  _.each(players, function(p, pid) {
+    // serialize the player
+    serialPlayers[pid] = p.player.serialize();
+  });
+
+  _.each(players, function(p, pid) {
+
+    // timestamp world snapshow
+    p.socket.emit('update', {
+      players: serialPlayers,
+      signals: signals,
+      t: t.getTime()
+    });
+
+  }); 
+}
+
 io.sockets.on('connection', function (socket) {
 
   // random player id after connecting
@@ -109,10 +128,12 @@ io.sockets.on('connection', function (socket) {
   socket.on('userName', function (data) {
     players[data.pid].player.name = data.name;
 
-    signals.push({
+    var signals = [{
       type: 'playerEntered',
       player: players[data.pid].player.serialize()
-    });
+    }];
+
+    broadcast(signals);
   });
 
   // when this player moves
@@ -138,8 +159,8 @@ io.sockets.on('connection', function (socket) {
 var oldT = new Date();
 setInterval(function() {
 
-  var serialPlayers = {};
-
+  // clear signals
+  var signals = [];
 
   // update player states
   _.each(players, function(p, pid) {
@@ -167,6 +188,7 @@ setInterval(function() {
 
             // decrease health
             other.player.health--;
+            console.log(other.player.health)
 
             // death?
             if (other.player.health <= 0) {
@@ -186,26 +208,10 @@ setInterval(function() {
       });
     }
 
-    // serialize the player
-   
-    serialPlayers[pid] = p.player.serialize();
   });
 
   // broadcast moves
-  var t = new Date();
-  _.each(players, function(p, pid) {
-
-    // timestamp world snapshow
-    p.socket.emit('update', {
-      players: serialPlayers,
-      signals: signals,
-      t: t.getTime()
-    });
-
-  });
-
-  // misc signals (player has died, player has entered, player has left, player is damaged)
-  signals = [];
+  broadcast(signals);
 
   var newT = new Date();
 //  console.log(newT.getTime() - oldT.getTime())

@@ -31,14 +31,14 @@ function handleSignals(signals) {
       });
 
     }
-  })
+  });
 }
 function startGame(username) {
   var canvas = $('#canvas')[0];
       ctx = canvas.getContext('2d');
       ctx.fillStyle='#ff0000';
 
-  var socket = io.connect('http://localhost');
+  var socket = io.connect('http://192.168.1.2');
 
   socket.on('setPid', function (data) {
     pid = data.pid;
@@ -69,7 +69,6 @@ function startGame(username) {
     });
 
     if (data.signals.length > 0) {
-      console.log(data.signals);
       handleSignals(data.signals);
     }
   });
