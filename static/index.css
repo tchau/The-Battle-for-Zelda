@@ -65,6 +65,28 @@ button:hover {
   padding:5px;
 }
 
+#victory {
+  position: fixed;
+  width: 100%;
+  height:100%;
+  top:0;
+  background: rgba(0,0,0,0.4);
+}
+
+#victory .inner {
+  margin:0 auto;
+  width: 350px;
+  background: #eee;
+  border:1px solid #ddd;
+  color:#333;
+  margin-top:150px;
+  padding:10px;
+}
+
+.hidden {
+  display:none;
+
+}
 .hearts {
   color:red;
 }

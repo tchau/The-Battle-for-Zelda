@@ -12,6 +12,7 @@ function getHearts(num) {
 
 function handleSignals(signals) {
   _.each(signals, function(signal) {
+    console.log(signal)
     if (signal.type == 'death') {
       var str = (players[signal.killer].name + ' hath slain ' + players[signal.killed].name + '!');
       console.log(str);
@@ -29,6 +30,15 @@ function handleSignals(signals) {
                               .append($('<span></span>&nbsp;').text(player.name))
                               .append($('<span class="hearts"></span>').html(hearts)));
       });
+
+    }
+    if (signal.type == 'victory') {
+      $('#victory').show()
+                    .removeClass('hidden')
+                   .find('h2').text(players[signal.winner].name + ' has won!');
+      setTimeout(function() {
+        $('#victory').hide();
+      }, 5000);
 
     }
   });

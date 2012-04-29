@@ -91,6 +91,11 @@ var Player = function() {
     if (this.attackTime > 0)
       this.attackTime--;
   };
+
+  this.revive = function() {
+    this.dead = false;
+    this.health = 5;
+  }
 };
 
 function broadcast(signals) {
@@ -114,6 +119,32 @@ function broadcast(signals) {
   }); 
 }
 
+function existsWinner() {
+  var winner;
+  var numAlive = 0;
+  var numPlayers = 0;
+
+  _.each(players, function(p, pid) {
+    numPlayers++;
+    if (! p.player.dead) {
+      console.log('winner is ' + pid);
+      numAlive++;
+      winner = pid;
+    }
+  });
+
+  if (numAlive == numPlayers - 1 && numPlayers > 1)
+    return winner;
+}
+
+// restart the game -- reset all player health and positions
+function restart() {
+   _.each(players, function(p, pid) {
+    p.player.revive();
+  });
+
+}
+
 io.sockets.on('connection', function (socket) {
 
   // random player id after connecting
@@ -127,6 +158,8 @@ io.sockets.on('connection', function (socket) {
   // when user sets his name
   socket.on('userName', function (data) {
     players[data.pid].player.name = data.name;
+
+
 
     var signals = [{
       type: 'playerEntered',
@@ -201,6 +234,18 @@ setInterval(function() {
               });
 
               // check for a winner
+              var winnerPid;
+              console.log("WINNER: " + existsWinner())
+              if ((winnerPid = existsWinner())) {
+                signals.push({
+                  type: 'victory',
+                  winner:  winnerPid
+                });
+
+                // restart the game in 5 seconds
+                setTimeout(restart, 5000);
+              }
+
 
             }
           }
