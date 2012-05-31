@@ -7,8 +7,10 @@ body {
   font-family: 'Minecraftia';
 }
 
-main {
-
+#main {
+  width:835px;
+  margin: 0 auto;
+  position: relative;
 }
 
 canvas {
