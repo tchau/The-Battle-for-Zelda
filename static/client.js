@@ -49,7 +49,8 @@ function startGame(username) {
       ctx.fillStyle='#ff0000';
 
   //var socket = io.connect('http://192.168.1.2');
-  var socket = io.connect('http://battlezelda.nodejitsu.com');
+  var socket = io.connect('http://localhost');
+  //var socket = io.connect('http://battlezelda.nodejitsu.com');
 
   socket.on('setPid', function (data) {
     pid = data.pid;
