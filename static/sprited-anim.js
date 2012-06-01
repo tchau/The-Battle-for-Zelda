@@ -48,7 +48,7 @@ var SpritedAnim = Class.extend({
           /*
           ctx.strokeStyle = '#f00'; // red
           ctx.lineWidth   = 1;
-          ctx.strokeRect(this._x - 2,  this._y - 2, 28, 28);
+          ctx.strokeRect(this.x - 2,  this.y - 2, 28, 28);
           */
           ctx.globalAlpha = 0.5;
         }
@@ -84,15 +84,6 @@ var Hero = SpritedAnim.extend({
       spriteY: 0,
       frames: 8
     });
-  },
-
-  setPosition: function(x, y) {
-    this._x = x;
-    this._y = y;
-  },
-
-  setVelocity : function(velocity) {
-    this._velocity = velocity;
   },
 
   getDirection: function() {
@@ -219,6 +210,13 @@ var Hero = SpritedAnim.extend({
   },
 
   setValue: function(playerJSON) {
+
+    for (key in playerJSON) {
+      // special exception for dir... see below
+      if (key != 'xdir' && key != 'ydir')
+        this[key] = playerJSON[key];
+    }
+    /*
     this.setPosition(playerJSON.x, playerJSON.y);
     this.setVelocity(playerJSON.velocity);
     this.damagedTime = playerJSON.damagedTime; 
@@ -226,21 +224,23 @@ var Hero = SpritedAnim.extend({
     this.health = playerJSON.health;
     this.name = playerJSON.name;
     this.dead = playerJSON.dead;
+    */
 
     //TODO do not copy fields; just do it completely and automatically
 
     if (playerJSON.attackTime > 0) {
       this.setState(this.STATES.ATTACKING, playerJSON.xdir, playerJSON.ydir)
     }
-    else if (this._velocity == 0)
+    else if (this.velocity == 0)
       this.setState(this.STATES.STANDING, playerJSON.xdir, playerJSON.ydir)
-    else if (this._velocity > 0)
+    else if (this.velocity > 0)
       this.setState(this.STATES.WALKING, playerJSON.xdir, playerJSON.ydir);
 
     if (this.dead)
       this.setState(this.STATES.DEAD, playerJSON.xdir, playerJSON.ydir)
 
     this.setDirection(playerJSON.xdir, playerJSON.ydir);
+
   },
 
   setState: function(state, xdir, ydir) {
@@ -293,17 +293,17 @@ var Hero = SpritedAnim.extend({
   },
 
   draw: function(ctx) {
-    //if (this._velocity > 0)
+    //if (this.velocity > 0)
     this.next();
 
-    this._super(ctx, this._x, this._y);
+    this._super(ctx, this.x, this.y);
 
     if (this.dead)
       ctx.setFillColor('#ff0000');
     else
       ctx.setFillColor('#ffffff');
 
-    ctx.fillText(this.name, this._x - 5, this._y + 35);
+    ctx.fillText(this.name, this.x - 5, this.y + 35);
 
 
     // TODO temp

@@ -29,7 +29,7 @@ var Player = function() {
   }
 
   this.getBox = function() {
-    return new Rectangle({ x: this.x, y: this.y, w: 30, h: 30});
+    return new Rectangle({ x: this.x, y: this.y, w: 30, h: 30 });
   }
 
   this.knockback = function(xdir, ydir) {
