@@ -1,0 +1,40 @@
+<html>
+<head>
+
+<title>The Battle for Zelda: Link's BLOODBATH</title>
+<script src="/socket.io/socket.io.js"></script>
+<script src="/static/jquery-1.7.1.min.js"></script>
+<script src="/static/jquery-ui-1.8.18.custom.min.js"></script>
+<script src="/static/underscore.js"></script>
+<script src="/static/class.js"></script>
+
+
+<script>
+
+$(document).ready(function() {
+
+
+  var socket = io.connect('http://localhost');
+  socket.on('update', function(data) {
+  	console.log(data);
+  });
+	
+
+});
+</script>
+</head>
+<body>
+
+	<div id="main">
+		<canvas width="500" height="500" id="canvas"></canvas>
+		<div id="sidepanel"> </div>
+	</div>
+	
+	<div id="interact">
+	</div>
+
+
+</body>
+
+
+</html>

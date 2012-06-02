@@ -7,6 +7,7 @@ var app = require('express').createServer(),
    Player = require('./static/player').Player,
    Constants = require('./static/const').Constants,
    Rectangle = require('./static/rectangle').Rectangle,
+   Mondrian = require('./mondrian').Mondrian,
    _ = require('underscore'),
    io = require('socket.io').listen(app, { log: false });
 
@@ -19,9 +20,12 @@ app.get('/', function (req, res) {
   res.sendfile(__dirname + '/index.html');
 });
 
+/* MONDRIAN */
+var mondrian = new Mondrian(8081);
+
+/* END MONDRIAN */
 
 var players = {};
-
 
 function broadcast(signals) {
   var t = new Date();
@@ -95,7 +99,8 @@ io.sockets.on('connection', function (socket) {
   // when this player moves
   socket.on('userInput', function (data) {
 
-console.log(data)
+    mondrian.log(data);
+    
     // ignore inputs for dead players
     if (players[data.pid].dead)
       return;

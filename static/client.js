@@ -10,6 +10,23 @@ function getHearts(num) {
   return hearts;
 }
 
+
+/*
+  TODO turn this into an event-driven architecture
+      Events from server are "fired" by Objects there (player damaged)
+
+      BUT what about client objects "sync"? Sync with server objs (rather, client
+      objects are passively syncing with the backend objs' states as pure observers)
+
+      Objects in the client "listen". E.g. event "player34 damaged" is handled
+      by Player, and perhaps side panel that must refresh stats.
+
+      however the client objs can't directly listen to server objs... they "remote" listen
+      via the socket interface. Published server events must be transmitted.
+      The interface must route it to the right local rep.
+
+      These objects also may publish their own events in response.
+*/
 function handleSignals(signals) {
   _.each(signals, function(signal) {
     console.log(signal)
@@ -43,6 +60,7 @@ function handleSignals(signals) {
     }
   });
 }
+
 function startGame(username) {
   var canvas = $('#canvas')[0];
       ctx = canvas.getContext('2d');
