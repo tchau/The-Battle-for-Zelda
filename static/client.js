@@ -66,8 +66,8 @@ function startGame(username) {
       ctx = canvas.getContext('2d');
       ctx.fillStyle='#ff0000';
 
-  //var socket = io.connect('http://192.168.1.2');
-  var socket = io.connect('http://localhost');
+  var socket = io.connect('http://192.168.1.2');
+  //var socket = io.connect('http://localhost');
   //var socket = io.connect('http://battlezelda.nodejitsu.com');
 
   socket.on('setPid', function (data) {

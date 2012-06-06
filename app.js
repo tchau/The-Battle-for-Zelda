@@ -99,8 +99,8 @@ io.sockets.on('connection', function (socket) {
   // when this player moves
   socket.on('userInput', function (data) {
 
-    mondrian.log(data);
-    
+    mondrian.log(data.pid + "input", data);
+
     // ignore inputs for dead players
     if (players[data.pid].dead)
       return;
@@ -111,7 +111,9 @@ io.sockets.on('connection', function (socket) {
     if (data.attack == true) {
       players[data.pid].player.attackTime = 20;
       players[data.pid].player.setVelocity(0);
+
     }
+    mondrian.log(data.pid + "player", players[data.pid].player.serialize());
 
   });
 });

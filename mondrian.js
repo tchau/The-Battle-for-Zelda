@@ -5,7 +5,7 @@ var Mondrian = function(port) {
       express = require('express');
   mondApp.listen(port);
 
-  var io = require('socket.io').listen(mondApp);
+  var io = require('socket.io').listen(mondApp, { log: false });
   io.sockets.on('connection', function(socket) {
     console.log("MONDRIAN ON");
     sockets.push(socket);
@@ -18,10 +18,10 @@ var Mondrian = function(port) {
   mondApp.use('/static', express.static(__dirname + '/static'));
 
 
-  this.log = function(msg) {
+  this.log = function(id, msg) {
     var socks = sockets.length;
     for (var i = 0; i < socks; i++)
-      sockets[i].emit('update', msg);
+      sockets[i].emit('update', { id: id, data:msg });
   }
 
 }

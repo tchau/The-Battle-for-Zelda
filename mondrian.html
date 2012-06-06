@@ -8,15 +8,202 @@
 <script src="/static/underscore.js"></script>
 <script src="/static/class.js"></script>
 
+<style>
+	#main {
+		width: 100%;
+		height:100%;
+		color: #333;
+		font-family: helvetica;
+		padding:25px;
+		font-size:12px;
+	}
 
+
+	.object {
+		float: left;
+		border:1px solid #DDD;
+		margin:5px;
+		background:rgba(0,0,25,0.05);
+		position:relative;
+
+		transition: all 0.3s;
+		-webkit-transition: all .6s;
+	}
+
+	.object > .top-level-key {
+		position: absolute;
+		top:-14px;
+		padding:0 5px;
+		left:-1px;
+		font-size:11px;
+		color:#999;
+		font-family:monospace;
+	}
+
+	.object:hover > .top-level-key {
+		z-index:9999;
+		background:#666;
+		color:#fff;
+	}
+
+	.object:hover {
+		border:1px solid #666;
+	}
+
+	#main > .object {
+		background: white;
+		margin:10px;
+	}
+
+	.field {
+		float:left;
+		/*padding:5px 5px 0px 5px;*/
+		border: 1px solid #DDD;
+		position:relative;
+		min-width: 20px;
+		min-height:20px;
+
+		-webkit-transition: all 0.3s;
+
+		
+	}
+
+	.field .key {
+		/*
+		position:absolute;
+		bottom:2px;
+		left:3px;
+		*/
+		color: #999;
+		font-size:10px;
+		font-family: monospace;
+		text-align: center;
+		padding:0 5px;
+	}
+
+	.field:hover {
+		border:1px solid #666;
+	}
+	.field:hover > .key {
+		clear:both;
+		background:rgba(40,40,90,0.5);
+		color:#fff;
+	}
+	.field:hover > .value {
+		background:rgba(5,90,25,0.10);
+	}
+
+	.field .key:hover {
+		background:rgba(40,40,120,0.8);
+		cursor:pointer;
+	}
+
+	.field .value {
+		text-align:center;
+		padding:3px 5px;
+
+		box-shadow:0 0 0 transparent inset;
+		transition: all 0.4s;
+		-webkit-transition: all .4s;
+		-moz-transition: all .4s;
+		-ms-transition: all .4s;
+		-o-transition: all .4s;
+	}
+
+	.field .updated {
+		box-shadow:0 0 10px rgba(0, 10, 220, 0.5) inset;
+	}
+
+	/* field numeric color? field-- obj
+
+			different colors for different types of fields?
+	*/
+
+
+
+</style>
 <script>
 
 $(document).ready(function() {
 
 
+function parse(data) {
+
+  if (typeof data == "object") {
+	  var obj = $("<div></div>").addClass('object');
+	  for (var key in data) {
+
+			obj.append($("<div></div>")
+									.addClass("field")
+									.attr('name', key)
+					  			.append(parse(data[key]))
+					  			.append($("<div></div>")
+				  									.addClass("key")
+		  											.html(key)));
+		}
+
+		return obj;
+	}
+	else {
+		return $("<div></div>")
+						.addClass("value")
+						.html(data);
+	}
+}
+
+function update(node, data) {
+	// sure, we coudl blow away the element and reparse... but that may be expensive and cause reflows
+
+	if (typeof data == "object") {
+
+		// let's just directly find this shit and update the individual elements	
+		for (var key in data) {
+			var fieldElt = node.find('.field[name="' + key + '"]').first();
+			if (fieldElt)
+				update(fieldElt, data[key]);
+			else
+				node.append(parse(data[key]));
+
+		}
+	}
+	else {
+		var valueEl = node.find('.value');
+
+		if (valueEl.html() != data) {
+
+			valueEl.html(data);
+
+			if (! valueEl.hasClass('updated')) {
+				valueEl.addClass('updated');
+
+				setTimeout(function() {
+					node.find('.value').removeClass('updated');
+				}, 600);
+
+			}
+		}
+	}
+
+}
+
   var socket = io.connect('http://localhost');
-  socket.on('update', function(data) {
-  	console.log(data);
+  socket.on('update', function(msg) {
+
+  	// if element does not exist, create new one modeled after the JSON
+  	if (! document.getElementById(msg.id)) {
+
+	  	var obj = parse(msg.data);
+	  	obj.attr('id', msg.id);
+	  	obj.append($("<div></div>")
+	  							.addClass('top-level-key')
+	  							.html(msg.id));
+	  	$('#main').append(obj);
+  	}
+  	else {
+  		update($(document.getElementById(msg.id)), msg.data);
+  	}
+
+
   });
 	
 
@@ -26,13 +213,30 @@ $(document).ready(function() {
 <body>
 
 	<div id="main">
-		<canvas width="500" height="500" id="canvas"></canvas>
-		<div id="sidepanel"> </div>
+		<div class="object">
+			<div class="field">
+				<div class="key"> name </div>
+				<div class="value"> "Joe" </div>
+			</div>
+			<div class="field">
+				<div class="key"> id </div>
+				<div class="value"> 23415110 </div>
+			</div>
+			<div class="field">
+				<div class="key"> direction </div>
+				<div class="value"> 
+					<div class="object">
+						<div class="field">
+							<div class="key"> x </div><div class="value"> 1.1 </div>
+						</div>
+						<div class="field">
+							<div class="key"> y </div><div class="value"> -2.1 </div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
 	</div>
-	
-	<div id="interact">
-	</div>
-
 
 </body>
 

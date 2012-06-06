@@ -18,6 +18,17 @@ var Player = function() {
   // "damaged" cooldown, in ticks
   this.damagedTime = 0;
 
+  this.inventory = [
+    {
+      name: "Sword", dmg: 20
+    },
+    {
+      name: "Spear", dmg: 10
+    },
+    {
+      name: "Shield", hp: 100
+    }
+  ];
 
   this.serialize = function() {
     var serialP = {};
